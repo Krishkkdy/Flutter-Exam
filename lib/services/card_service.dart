@@ -16,11 +16,13 @@ class CardService {
   Future<void> _initializeFirestore() async {
     try {
       // Enable offline persistence with optimized settings
-      await _firestore.enablePersistence(
+      await _firestore
+          .enablePersistence(
         const PersistenceSettings(
           synchronizeTabs: true,
         ),
-      ).catchError((e) {
+      )
+          .catchError((e) {
         debugPrint('Persistence already enabled: $e');
       });
 
@@ -33,11 +35,13 @@ class CardService {
       );
 
       // Pre-cache data
-      await _cardsCollection.get(
+      await _cardsCollection
+          .get(
         const GetOptions(
           source: Source.serverAndCache,
         ),
-      ).catchError((e) {
+      )
+          .catchError((e) {
         debugPrint('Initial cache fetch error (non-fatal): $e');
       });
     } catch (e) {
@@ -83,13 +87,14 @@ class CardService {
         .where('userId', isEqualTo: userId)
         .snapshots(includeMetadataChanges: true)
         .map((snapshot) {
-          final isFromCache = snapshot.metadata.isFromCache;
-          final hasPendingWrites = snapshot.metadata.hasPendingWrites;
-          
-          debugPrint('Data source: ${isFromCache ? 'Cache' : 'Server'}');
-          debugPrint('Has pending writes: $hasPendingWrites');
+      final isFromCache = snapshot.metadata.isFromCache;
+      final hasPendingWrites = snapshot.metadata.hasPendingWrites;
 
-          return snapshot.docs.map((doc) {
+      debugPrint('Data source: ${isFromCache ? 'Cache' : 'Server'}');
+      debugPrint('Has pending writes: $hasPendingWrites');
+
+      return snapshot.docs
+          .map((doc) {
             try {
               return LoyaltyCard.fromMap({
                 ...doc.data() as Map<String, dynamic>,
@@ -101,7 +106,10 @@ class CardService {
               debugPrint('Error mapping card ${doc.id}: $e');
               return null;
             }
-          }).where((card) => card != null).cast<LoyaltyCard>().toList();
-        });
+          })
+          .where((card) => card != null)
+          .cast<LoyaltyCard>()
+          .toList();
+    });
   }
 }

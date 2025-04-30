@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/loyalty_card.dart';
+import '../services/brightness_service.dart';
 
-class CardDetailPage extends StatelessWidget {
+class CardDetailPage extends StatefulWidget {
   final LoyaltyCard card;
-
   const CardDetailPage({super.key, required this.card});
+
+  @override
+  State<CardDetailPage> createState() => _CardDetailPageState();
+}
+
+class _CardDetailPageState extends State<CardDetailPage> {
+  final BrightnessService _brightnessService = BrightnessService();
+
+  @override
+  void dispose() {
+    _brightnessService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +29,7 @@ class CardDetailPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: theme.colorScheme.primary,
         title: Text(
-          card.storeName,
+          widget.card.storeName,
           style: TextStyle(color: theme.colorScheme.onPrimary),
         ),
       ),
@@ -30,7 +43,7 @@ class CardDetailPage extends StatelessWidget {
                 children: [
                   const SizedBox(height: 20),
                   Hero(
-                    tag: 'qr_${card.id}',
+                    tag: 'qr_${widget.card.id}',
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -45,7 +58,7 @@ class CardDetailPage extends StatelessWidget {
                         ],
                       ),
                       child: QrImageView(
-                        data: card.barcode,
+                        data: widget.card.barcode,
                         version: QrVersions.auto,
                         size: 200.0,
                       ),
@@ -53,7 +66,7 @@ class CardDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    card.barcode,
+                    widget.card.barcode,
                     style: TextStyle(
                       color: theme.colorScheme.onPrimary,
                       fontSize: 18,
@@ -74,8 +87,8 @@ class CardDetailPage extends StatelessWidget {
                     icon: Icons.store,
                     title: 'Store Details',
                     children: [
-                      DetailRow(label: "Store Name", value: card.storeName),
-                      DetailRow(label: "Card Number", value: card.cardNumber),
+                      DetailRow(label: "Store Name", value: widget.card.storeName),
+                      DetailRow(label: "Card Number", value: widget.card.cardNumber),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -85,11 +98,11 @@ class CardDetailPage extends StatelessWidget {
                     title: 'Card Details',
                     children: [
                       DetailRow(
-                          label: "Cardholder Name", value: card.cardholderName),
+                          label: "Cardholder Name", value: widget.card.cardholderName),
                       DetailRow(
                         label: "Expiry Date",
                         value:
-                            "${card.expiryDate.day}/${card.expiryDate.month}/${card.expiryDate.year}",
+                            "${widget.card.expiryDate.day}/${widget.card.expiryDate.month}/${widget.card.expiryDate.year}",
                       ),
                     ],
                   ),
@@ -100,11 +113,20 @@ class CardDetailPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Implement brightness control
+        onPressed: () async {
+          await _brightnessService.toggleMaxBrightness();
+          setState(() {}); // Refresh UI to update button state
         },
-        icon: const Icon(Icons.brightness_7),
-        label: const Text('Maximize Brightness'),
+        icon: Icon(
+          _brightnessService.isMaxBrightness 
+              ? Icons.brightness_4 
+              : Icons.brightness_7
+        ),
+        label: Text(
+          _brightnessService.isMaxBrightness 
+              ? 'Restore Brightness'
+              : 'Maximize Brightness'
+        ),
       ),
     );
   }

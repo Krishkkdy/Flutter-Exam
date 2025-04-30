@@ -186,8 +186,8 @@ class HomePage extends StatelessWidget {
                                   },
                                   child: Text(
                                     'Delete',
-                                    style:
-                                        TextStyle(color: theme.colorScheme.error),
+                                    style: TextStyle(
+                                        color: theme.colorScheme.error),
                                   ),
                                 ),
                               ],
@@ -212,9 +212,11 @@ class HomePage extends StatelessWidget {
                           Text(
                             'Expires: ${card.expiryDate.day}/${card.expiryDate.month}/${card.expiryDate.year}',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color:
-                                  isExpiringSoon ? theme.colorScheme.error : null,
-                              fontWeight: isExpiringSoon ? FontWeight.bold : null,
+                              color: isExpiringSoon
+                                  ? theme.colorScheme.error
+                                  : null,
+                              fontWeight:
+                                  isExpiringSoon ? FontWeight.bold : null,
                             ),
                           ),
                         ],
