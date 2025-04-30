@@ -1,3 +1,5 @@
+import '../services/encryption_service.dart';
+
 class LoyaltyCard {
   final String id;
   final String storeName;
@@ -21,8 +23,8 @@ class LoyaltyCard {
     return {
       'id': id,
       'storeName': storeName,
-      'cardNumber': cardNumber,
-      'barcode': barcode,
+      'cardNumber': EncryptionService.encrypt(cardNumber),
+      'barcode': EncryptionService.encrypt(barcode),
       'cardholderName': cardholderName,
       'expiryDate': expiryDate.millisecondsSinceEpoch,
       'userId': userId,
@@ -30,11 +32,22 @@ class LoyaltyCard {
   }
 
   factory LoyaltyCard.fromMap(Map<String, dynamic> map) {
+    String cardNumber = map['cardNumber'] ?? '';
+    String barcode = map['barcode'] ?? '';
+
+    // Decrypt if encrypted
+    if (EncryptionService.isEncrypted(cardNumber)) {
+      cardNumber = EncryptionService.decrypt(cardNumber);
+    }
+    if (EncryptionService.isEncrypted(barcode)) {
+      barcode = EncryptionService.decrypt(barcode);
+    }
+
     return LoyaltyCard(
       id: map['id'],
       storeName: map['storeName'],
-      cardNumber: map['cardNumber'],
-      barcode: map['barcode'],
+      cardNumber: cardNumber,
+      barcode: barcode,
       cardholderName: map['cardholderName'],
       expiryDate: DateTime.fromMillisecondsSinceEpoch(map['expiryDate']),
       userId: map['userId'],
