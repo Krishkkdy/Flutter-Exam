@@ -40,7 +40,7 @@ class HomePage extends StatelessWidget {
           }
 
           final cards = snapshot.data ?? [];
-          
+
           if (cards.isEmpty) {
             return const Center(
               child: Text('No loyalty cards added yet. Tap + to add one.'),

@@ -14,7 +14,7 @@ class _AddCardPageState extends State<AddCardPage> {
   final _formKey = GlobalKey<FormState>();
   final CardService _cardService = CardService();
   final AuthService _authService = AuthService();
-  
+
   final _storeNameController = TextEditingController();
   final _cardNumberController = TextEditingController();
   final _barcodeController = TextEditingController();
@@ -108,8 +108,9 @@ class _AddCardPageState extends State<AddCardPage> {
             TextFormField(
               controller: _cardholderNameController,
               decoration: const InputDecoration(labelText: 'Cardholder Name'),
-              validator: (value) =>
-                  value?.isEmpty ?? true ? 'Please enter cardholder name' : null,
+              validator: (value) => value?.isEmpty ?? true
+                  ? 'Please enter cardholder name'
+                  : null,
             ),
             ListTile(
               title: Text(_expiryDate == null

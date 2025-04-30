@@ -26,9 +26,9 @@ class CardDetailPage extends StatelessWidget {
                 DetailRow(label: "Barcode", value: card.barcode),
                 DetailRow(label: "Cardholder Name", value: card.cardholderName),
                 DetailRow(
-                  label: "Expiry Date", 
-                  value: "${card.expiryDate.day}/${card.expiryDate.month}/${card.expiryDate.year}"
-                ),
+                    label: "Expiry Date",
+                    value:
+                        "${card.expiryDate.day}/${card.expiryDate.month}/${card.expiryDate.year}"),
               ],
             ),
             const SizedBox(height: 20),
