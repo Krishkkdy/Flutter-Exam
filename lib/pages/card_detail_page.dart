@@ -9,55 +9,89 @@ class CardDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(card.storeName),
+        elevation: 0,
+        backgroundColor: theme.colorScheme.primary,
+        title: Text(
+          card.storeName,
+          style: TextStyle(color: theme.colorScheme.onPrimary),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailCard(
-              title: "Card Information",
-              content: [
-                DetailRow(label: "Store Name", value: card.storeName),
-                DetailRow(label: "Card Number", value: card.cardNumber),
-                DetailRow(label: "Barcode", value: card.barcode),
-                DetailRow(label: "Cardholder Name", value: card.cardholderName),
-                DetailRow(
-                    label: "Expiry Date",
-                    value:
-                        "${card.expiryDate.day}/${card.expiryDate.month}/${card.expiryDate.year}"),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Center(
+            Container(
+              width: double.infinity,
+              color: theme.colorScheme.primary,
               child: Column(
                 children: [
-                  const Text(
-                    'Show this code at checkout:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 20),
+                  Hero(
+                    tag: 'qr_${card.id}',
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: QrImageView(
+                        data: card.barcode,
+                        version: QrVersions.auto,
+                        size: 200.0,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  QrImageView(
-                    data: card.barcode,
-                    version: QrVersions.auto,
-                    size: 200.0,
-                  ),
-                  const SizedBox(height: 8),
                   Text(
                     card.barcode,
-                    style: const TextStyle(fontSize: 16),
+                    style: TextStyle(
+                      color: theme.colorScheme.onPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoSection(
+                    context,
+                    icon: Icons.store,
+                    title: 'Store Details',
+                    children: [
+                      DetailRow(label: "Store Name", value: card.storeName),
+                      DetailRow(label: "Card Number", value: card.cardNumber),
+                    ],
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Increase brightness to maximum while showing the code
-                      // You can implement screen brightness control here
-                    },
-                    icon: const Icon(Icons.brightness_7),
-                    label: const Text('Maximize Brightness'),
+                  _buildInfoSection(
+                    context,
+                    icon: Icons.person,
+                    title: 'Card Details',
+                    children: [
+                      DetailRow(
+                          label: "Cardholder Name", value: card.cardholderName),
+                      DetailRow(
+                        label: "Expiry Date",
+                        value:
+                            "${card.expiryDate.day}/${card.expiryDate.month}/${card.expiryDate.year}",
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -65,29 +99,48 @@ class CardDetailPage extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // Implement brightness control
+        },
+        icon: const Icon(Icons.brightness_7),
+        label: const Text('Maximize Brightness'),
+      ),
     );
   }
 
-  Widget _buildDetailCard({
+  Widget _buildInfoSection(
+    BuildContext context, {
+    required IconData icon,
     required String title,
-    required List<Widget> content,
+    required List<Widget> children,
   }) {
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 4,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Icon(icon, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            ...content,
+            const Divider(),
+            ...children,
           ],
         ),
       ),

@@ -1,5 +1,3 @@
-import '../services/encryption_service.dart';
-
 class LoyaltyCard {
   final String id;
   final String storeName;
@@ -8,6 +6,8 @@ class LoyaltyCard {
   final String cardholderName;
   final DateTime expiryDate;
   final String userId;
+  final bool isOffline;
+  final bool isPending;
 
   LoyaltyCard({
     required this.id,
@@ -17,40 +17,34 @@ class LoyaltyCard {
     required this.cardholderName,
     required this.expiryDate,
     required this.userId,
+    this.isOffline = false,
+    this.isPending = false,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'storeName': storeName,
-      'cardNumber': EncryptionService.encrypt(cardNumber),
-      'barcode': EncryptionService.encrypt(barcode),
+      'cardNumber': cardNumber,
+      'barcode': barcode,
       'cardholderName': cardholderName,
       'expiryDate': expiryDate.millisecondsSinceEpoch,
       'userId': userId,
+      'lastSyncedAt': DateTime.now().millisecondsSinceEpoch,
     };
   }
 
   factory LoyaltyCard.fromMap(Map<String, dynamic> map) {
-    String cardNumber = map['cardNumber'] ?? '';
-    String barcode = map['barcode'] ?? '';
-
-    // Decrypt if encrypted
-    if (EncryptionService.isEncrypted(cardNumber)) {
-      cardNumber = EncryptionService.decrypt(cardNumber);
-    }
-    if (EncryptionService.isEncrypted(barcode)) {
-      barcode = EncryptionService.decrypt(barcode);
-    }
-
     return LoyaltyCard(
       id: map['id'],
       storeName: map['storeName'],
-      cardNumber: cardNumber,
-      barcode: barcode,
+      cardNumber: map['cardNumber'],
+      barcode: map['barcode'],
       cardholderName: map['cardholderName'],
       expiryDate: DateTime.fromMillisecondsSinceEpoch(map['expiryDate']),
       userId: map['userId'],
+      isOffline: map['isOffline'] ?? false,
+      isPending: map['isPending'] ?? false,
     );
   }
 }

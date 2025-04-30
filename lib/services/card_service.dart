@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart'; // Add this import
+import 'package:flutter/foundation.dart';
 import '../models/loyalty_card.dart';
 
 class CardService {
@@ -14,39 +14,35 @@ class CardService {
   }
 
   Future<void> _initializeFirestore() async {
-    _firestore.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-      sslEnabled: true,
-    );
-
     try {
-      await _firestore.enablePersistence();
-      _setupNetworkListener();
+      // Enable offline persistence with optimized settings
+      await _firestore.enablePersistence(
+        const PersistenceSettings(
+          synchronizeTabs: true,
+        ),
+      ).catchError((e) {
+        debugPrint('Persistence already enabled: $e');
+      });
+
+      // Configure Firestore settings
+      _firestore.settings = const Settings(
+        persistenceEnabled: true,
+        // Use proper cache size constant
+        cacheSizeBytes: 104857600, // 100MB cache size
+        sslEnabled: true,
+      );
+
+      // Pre-cache data
+      await _cardsCollection.get(
+        const GetOptions(
+          source: Source.serverAndCache,
+        ),
+      ).catchError((e) {
+        debugPrint('Initial cache fetch error (non-fatal): $e');
+      });
     } catch (e) {
-      print('Error enabling persistence: $e');
-    }
-  }
-
-  void _setupNetworkListener() {
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      if (result != ConnectivityResult.none) {
-        _syncPendingChanges();
-      }
-    });
-  }
-
-  Future<void> _syncPendingChanges() async {
-    try {
-      // Force a sync of any pending writes
-      await _firestore.waitForPendingWrites();
-
-      // Attempt to re-fetch all data to ensure we have latest
-      final snapshot =
-          await _cardsCollection.get(GetOptions(source: Source.server));
-      print('Synced ${snapshot.docs.length} cards with server');
-    } catch (e) {
-      print('Error syncing with server: $e');
+      // Log error but don't throw - app can still work with default settings
+      debugPrint('Firestore offline setup warning: $e');
     }
   }
 
@@ -55,14 +51,8 @@ class CardService {
       final batch = _firestore.batch();
       final docRef = _cardsCollection.doc(card.id);
 
-      // Set with merge to handle offline conflicts
       batch.set(docRef, card.toMap(), SetOptions(merge: true));
       await batch.commit();
-
-      // Try immediate sync if online
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        await _syncPendingChanges();
-      }
 
       print('Card added successfully: ${card.id}');
     } catch (e) {
@@ -87,40 +77,31 @@ class CardService {
   }
 
   Stream<List<LoyaltyCard>> getUserCards(String userId) {
-    if (userId.isEmpty) {
-      return Stream.value([]);
-    }
+    if (userId.isEmpty) return Stream.value([]);
 
     return _cardsCollection
         .where('userId', isEqualTo: userId)
-        .snapshots(includeMetadataChanges: true) // Enable offline snapshots
+        .snapshots(includeMetadataChanges: true)
         .map((snapshot) {
-      try {
-        // Check if data is from cache
-        final isFromCache = snapshot.metadata.isFromCache;
-        final isPending = snapshot.metadata.hasPendingWrites;
+          final isFromCache = snapshot.metadata.isFromCache;
+          final hasPendingWrites = snapshot.metadata.hasPendingWrites;
+          
+          debugPrint('Data source: ${isFromCache ? 'Cache' : 'Server'}');
+          debugPrint('Has pending writes: $hasPendingWrites');
 
-        print('Data source: ${isFromCache ? "cache" : "server"}, '
-            'Pending writes: $isPending');
-
-        return snapshot.docs
-            .map((doc) {
-              try {
-                return LoyaltyCard.fromMap({
-                  ...doc.data() as Map<String, dynamic>,
-                  'id': doc.id,
-                });
-              } catch (e) {
-                print('Error mapping card: $e');
-                return null;
-              }
-            })
-            .whereType<LoyaltyCard>()
-            .toList();
-      } catch (e) {
-        print('Error mapping cards: $e');
-        return [];
-      }
-    });
+          return snapshot.docs.map((doc) {
+            try {
+              return LoyaltyCard.fromMap({
+                ...doc.data() as Map<String, dynamic>,
+                'id': doc.id,
+                'isOffline': isFromCache,
+                'isPending': hasPendingWrites,
+              });
+            } catch (e) {
+              debugPrint('Error mapping card ${doc.id}: $e');
+              return null;
+            }
+          }).where((card) => card != null).cast<LoyaltyCard>().toList();
+        });
   }
 }
