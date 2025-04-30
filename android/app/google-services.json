@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "882316269728",
+    "project_id": "exam-c0791",
+    "storage_bucket": "exam-c0791.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:882316269728:android:7989f87e094676de7191c5",
+        "android_client_info": {
+          "package_name": "com.example.card_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOiYiL4Z1n4dm9RPP3VZsukaQ2MGo1-Ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
